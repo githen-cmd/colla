@@ -1,6 +1,6 @@
 # colla
 
-Small Python CLI for file and config helpers.
+Small Python CLI for file and config utilities.
 
 ## Install
 
@@ -13,8 +13,3 @@ pip install -e .
 ```bash
 colla --help
 ```
-
-## Development
-
-This project uses scripts in `scripts/` to generate collaboration history.
-See `data/config.yaml` for timeline settings.
