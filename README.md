@@ -13,8 +13,3 @@ pip install -e .
 ```bash
 colla --help
 ```
-
-## Development
-
-This project uses scripts in `scripts/` to generate collaboration history.
-See `data/config.yaml` for timeline settings.
