@@ -13,3 +13,7 @@ pip install -e .
 ```bash
 colla --help
 ```
+
+## Commands
+
+Run `colla --version` to check the installed version.
