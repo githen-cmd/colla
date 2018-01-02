@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.env
+
+# Queue runtime (regenerated)
+queue/replay.log
+queue/done.jsonl
+queue/failed.jsonl
+
+# IDE
+.idea/
+.vscode/
+*.swp

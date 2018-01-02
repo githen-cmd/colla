@@ -1,0 +1,43 @@
+# GitHub Collaboration History — configuration
+# Accounts: githen-cmd + pedrosatotop only
+
+repo: githen-cmd/colla
+timezone: America/Sao_Paulo
+
+start_date: "2018-01-01"
+end_date: "2022-12-31"
+
+workdays: [Mon, Tue, Wed, Thu, Fri]
+
+# ~30% of workdays have zero commits
+commits_per_day:
+  min: 0
+  max: 3
+  weights: [30, 35, 25, 10]  # P(0), P(1), P(2), P(3)
+
+pr_size:
+  min: 1
+  max: 2
+
+authors:
+  githen-cmd:
+    name: githen-cmd
+    email: "305970486+githen-cmd@users.noreply.github.com"
+  pedrosatotop:
+    name: pedrosatotop
+    email: "247719760+pedrosatotop@users.noreply.github.com"
+
+# Review mix: approve | comment_then_approve | request_changes
+review_weights: [70, 20, 10]
+
+# Random seed for reproducible timeline
+seed: 42
+
+# Pilot mode end date (used with --pilot flag)
+pilot_end_date: "2018-03-31"
+
+# Replay settings
+replay:
+  daily_cap: 20
+  delay_seconds: 30
+  merge_method: merge
