@@ -1,6 +1,6 @@
 # colla
 
-Small Python CLI for file and config utilities.
+Small Python CLI for file and config helpers.
 
 ## Install
 
