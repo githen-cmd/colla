@@ -346,7 +346,13 @@ def bump_minor_version() -> None:
 
 
 def fix_typo_readme() -> None:
-    _replace("README.md", "config helpers", "config utilities")
+    text = _read("README.md")
+    if "config helpers" in text:
+        _replace("README.md", "config helpers", "config utilities")
+    elif "config utilities" in text:
+        _replace("README.md", "config utilities", "config helpers")
+    else:
+        _append("README.md", "\n<!-- wording tweak -->\n")
 
 
 def add_changelog_entry() -> None:
