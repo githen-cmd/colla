@@ -261,29 +261,66 @@ def wire_batch_command() -> None:
     )
 
 
-def add_logging() -> None:
-    _write(
-        "src/colla/logutil.py",
-        '"""Logging helpers."""\n\nimport logging\n\n\n'
-        "def setup_logging(verbose: bool = False) -> None:\n"
-        '    """Configure root logger."""\n'
-        "    level = logging.DEBUG if verbose else logging.INFO\n"
-        "    logging.basicConfig(level=level, format='%(levelname)s %(message)s')\n",
-    )
-    _replace(
-        "src/colla/cli.py",
-        "import argparse\n",
-        "import argparse\n\nfrom colla.logutil import setup_logging\n",
-    )
-    _replace(
-        "src/colla/cli.py",
-        "    args = parser.parse_args()\n",
-        "    args = parser.parse_args()\n"
-        "    setup_logging(getattr(args, 'verbose', False))\n",
-    )
+def refactor_cli_parser() -> None:
+    text = _read("src/colla/cli.py")
+    if "def build_parser()" in text and "\ndef main()" in text:
+        return
+
+    imports = []
+    for line in text.splitlines():
+        if line.startswith("def "):
+            break
+        imports.append(line)
+    while imports and imports[-1] == "":
+        imports.pop()
+
+    body = '''
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="colla", description="File and config helpers")
+    parser.add_argument("--version", action="version", version=f"colla {__version__}")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    sub = parser.add_subparsers(dest="command")
+    read_p = sub.add_parser('read', help='Read a file')
+    read_p.add_argument('path')
+    write_p = sub.add_parser('write', help='Write a file')
+    write_p.add_argument('path')
+    write_p.add_argument('content')
+    cfg_p = sub.add_parser('config', help='Validate config file')
+    cfg_p.add_argument('path')
+    batch_p = sub.add_parser('batch-rename', help='Batch rename by suffix')
+    batch_p.add_argument('directory')
+    batch_p.add_argument('old_suffix')
+    batch_p.add_argument('new_suffix')
+    batch_p.add_argument('--dry-run', action='store_true')
+    return parser
+
+
+def main() -> None:
+    args = build_parser().parse_args()
+    if args.command == 'read':
+        print(read_text(args.path))
+    elif args.command == 'write':
+        write_text(args.path, args.content)
+    elif args.command == 'config':
+        data = load_json(args.path)
+        validate_config(data)
+        print('Config OK')
+    elif args.command == 'batch-rename':
+        n = rename_suffix(args.directory, args.old_suffix, args.new_suffix, args.dry_run)
+        print(f'Renamed {n} files')
+
+
+if __name__ == "__main__":
+    main()
+'''
+    _write("src/colla/cli.py", "\n".join(imports) + body)
 
 
 def add_copy_helper() -> None:
+    text = _read("src/colla/files.py")
+    if "def copy_file(" in text:
+        return
     _append(
         "src/colla/files.py",
         "\n\nimport shutil\n\n\n"
@@ -300,41 +337,38 @@ def docs_config_example() -> None:
     )
 
 
-def refactor_cli_parser() -> None:
-    _replace(
-        "src/colla/cli.py",
-        "def main() -> None:\n    parser = argparse.ArgumentParser",
-        "def build_parser() -> argparse.ArgumentParser:\n    parser = argparse.ArgumentParser",
+def add_logging() -> None:
+    _write(
+        "src/colla/logutil.py",
+        '"""Logging helpers."""\n\nimport logging\n\n\n'
+        "def setup_logging(verbose: bool = False) -> None:\n"
+        '    """Configure root logger."""\n'
+        "    level = logging.DEBUG if verbose else logging.INFO\n"
+        "    logging.basicConfig(level=level, format='%(levelname)s %(message)s')\n",
     )
-    text = _read("src/colla/cli.py")
-    if "return parser" not in text:
+    cli = _read("src/colla/cli.py")
+    if "from colla.logutil import setup_logging" not in cli:
         _replace(
             "src/colla/cli.py",
-            'if __name__ == "__main__":\n',
-            "    return parser\n\n\n"
-            'if __name__ == "__main__":\n',
+            "import argparse\n",
+            "import argparse\n\nfrom colla.logutil import setup_logging\n",
         )
-    _replace(
-        "src/colla/cli.py",
-        "def main() -> None:\n    parser = build_parser()",
-        "def main() -> None:\n    args = build_parser().parse_args()",
-    )
-    if "elif args.command == 'batch-rename'" not in _read("src/colla/cli.py"):
-        _append(
-            "src/colla/cli.py",
-            "\n    setup_logging(getattr(args, 'verbose', False))\n"
-            "    if args.command == 'read':\n"
-            "        print(read_text(args.path))\n"
-            "    elif args.command == 'write':\n"
-            "        write_text(args.path, args.content)\n"
-            "    elif args.command == 'config':\n"
-            "        data = load_json(args.path)\n"
-            "        validate_config(data)\n"
-            "        print('Config OK')\n"
-            "    elif args.command == 'batch-rename':\n"
-            "        n = rename_suffix(args.directory, args.old_suffix, args.new_suffix, args.dry_run)\n"
-            "        print(f'Renamed {n} files')\n",
-        )
+    cli = _read("src/colla/cli.py")
+    if "setup_logging(" not in cli:
+        if "args = build_parser().parse_args()" in cli:
+            _replace(
+                "src/colla/cli.py",
+                "    args = build_parser().parse_args()\n",
+                "    args = build_parser().parse_args()\n"
+                "    setup_logging(getattr(args, 'verbose', False))\n",
+            )
+        else:
+            _replace(
+                "src/colla/cli.py",
+                "    args = parser.parse_args()\n",
+                "    args = parser.parse_args()\n"
+                "    setup_logging(getattr(args, 'verbose', False))\n",
+            )
 
 
 def bump_patch_version() -> None:
@@ -363,6 +397,9 @@ def add_changelog_entry() -> None:
 
 
 def pin_python_version() -> None:
+    text = _read("pyproject.toml")
+    if 'requires-python = ">=3.9"' in text:
+        return
     _replace("pyproject.toml", 'requires-python = ">=3.8"', 'requires-python = ">=3.9"')
 
 
