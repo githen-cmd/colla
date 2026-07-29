@@ -19,7 +19,7 @@ from scripts.templates.patches import apply_template
 
 CONFIG_PATH = ROOT / "data" / "config.yaml"
 TIMELINE_PATH = ROOT / "data" / "timeline.json"
-QUEUE_DIR = ROOT / "queue"
+QUEUE_DIR = ROOT / "queue" / "runtime"
 PENDING_PATH = QUEUE_DIR / "pending.jsonl"
 
 GENERATED_PATHS = [
@@ -95,10 +95,36 @@ def clear_queue() -> None:
     (QUEUE_DIR / "failed.jsonl").write_text("", encoding="utf-8")
 
 
+def commit_bootstrap_if_dirty(authors: dict) -> None:
+    """Commit reset_repo_state file rewrites so ensure_clean_main can pass."""
+    status = git("status", "--porcelain").stdout.strip()
+    if not status:
+        return
+    for rel in (
+        "README.md",
+        "src/colla/cli.py",
+        "src/colla/__init__.py",
+        "pyproject.toml",
+    ):
+        if (ROOT / rel).exists():
+            git("add", "--", rel)
+    staged = git("diff", "--cached", "--name-only").stdout.strip()
+    if not staged:
+        return
+    author = authors["githen-cmd"]
+    commit_with_dates(
+        "chore: reset bootstrap for history replay",
+        author["name"],
+        author["email"],
+        "2018-01-01T09:00:00-02:00",
+    )
+
+
 def build_history(timeline: list[dict], authors: dict, reset: bool) -> None:
     if reset:
         clear_queue()
         reset_repo_state()
+        commit_bootstrap_if_dirty(authors)
 
     ensure_clean_main()
 

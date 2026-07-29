@@ -13,6 +13,9 @@ queue/replay.log
 queue/done.jsonl
 queue/failed.jsonl
 
+# Generated timeline (local build artifact)
+data/timeline.json
+
 # IDE
 .idea/
 .vscode/

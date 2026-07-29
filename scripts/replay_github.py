@@ -18,7 +18,7 @@ from scripts.git_utils import git, run
 from scripts.rate_limit import count_done_today, gh_as_user, load_done_ids, sleep_between
 
 CONFIG_PATH = ROOT / "data" / "config.yaml"
-QUEUE_DIR = ROOT / "queue"
+QUEUE_DIR = ROOT / "queue" / "runtime"
 PENDING_PATH = QUEUE_DIR / "pending.jsonl"
 DONE_PATH = QUEUE_DIR / "done.jsonl"
 FAILED_PATH = QUEUE_DIR / "failed.jsonl"

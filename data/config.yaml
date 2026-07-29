@@ -9,11 +9,11 @@ end_date: "2022-12-31"
 
 workdays: [Mon, Tue, Wed, Thu, Fri]
 
-# ~30% of workdays have zero commits
+# ~4-5 commits per week across Mon-Fri (most days idle)
 commits_per_day:
   min: 0
-  max: 3
-  weights: [30, 35, 25, 10]  # P(0), P(1), P(2), P(3)
+  max: 2
+  weights: [35, 45, 20]  # P(0), P(1), P(2) → ~0.85/day ≈ 4.25/week
 
 pr_size:
   min: 1
@@ -38,6 +38,6 @@ pilot_end_date: "2018-03-31"
 
 # Replay settings
 replay:
-  daily_cap: 20
+  daily_cap: 60
   delay_seconds: 30
   merge_method: merge
